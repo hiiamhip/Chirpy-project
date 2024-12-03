@@ -1,12 +1,17 @@
 package main
 
 import (
-	"net/http"
-	"log"
-	"fmt"
 	"sync/atomic"
+	"database/sql"
+	"fmt"
+	"log"
+	"net/http"
+	"os"
 	"encoding/json"
 	"strings"
+	"github.com/joho/godotenv" // Import godotenv
+	_ "github.com/lib/pq"       // PostgreSQL driver
+	
 )
 
 type apiConfig struct {
@@ -100,6 +105,19 @@ func readinessHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
+    dbURL := os.Getenv("DB_URL")
+
+    db, err := sql.Open("postgres", dbURL)
+    if err != nil {
+        log.Fatal("Error opening database: ", err)
+    }
+    defer db.Close()
+
 	apiCfg := &apiConfig{}
 	mux := http.NewServeMux()
 
